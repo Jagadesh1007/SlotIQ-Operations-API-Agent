@@ -1,0 +1,387 @@
+openapi: 3.0.3
+info:
+  title: SlotIQ Operations Aggregate Entities
+  description: |
+    Operations aggregate root and related entities for SlotIQ Operations system.
+    This file defines all operations-related entity schemas.
+  version: 1.0.0
+
+components:
+  schemas:
+    # Enum Definitions
+    OpportunityCategory:
+      type: integer
+      format: int32
+      enum: [1, 2, 3]
+      x-enumNames: [Forecast, ClientRequirements]
+      description: Opportunity category (Forecast, Client Requirements)
+
+    Status:
+      type: integer
+      format: int32
+      enum: [1, 2, 3, 4, 5, 6]
+      x-enumNames: [Open, InProgress, Closed, Completed, Cancelled, Rejected]
+      description: Status values (Open, InProgress, Closed, Completed, Cancelled, Rejected)
+
+    Source:
+      type: integer
+      format: int32
+      enum: [1, 2, 3, 4, 5]
+      x-enumNames: [Web, Mobile, API, Thirdparty, Manual]
+      description: Source system (Web, Mobile, API, Thirdparty, Manual)
+
+    Designation:
+      type: integer
+      format: int32
+      enum: [1, 2, 3]
+      x-enumNames: [SSE, ML, TL]
+      description: Candidate designation (SSE, ML, TL)
+
+    InterviewType:
+      type: integer
+      format: int32
+      enum: [1, 2, 3]
+      x-enumNames: [Weekday, Weekend, Walkin]
+      description: Interview type (Weekday, Weekend, Walk-in)
+
+    InterviewScheduleType:
+      type: integer
+      format: int32
+      enum: [1, 2]
+      x-enumNames: [New, Reschedule]
+      description: Interview schedule type (New, Reschedule)
+    # Base Entity Pattern
+    BaseEntity:
+      type: object
+      description: Base entity pattern with audit fields
+      properties:
+        isActive:
+          type: boolean
+          description: Soft delete flag - true for active records, false for deleted
+        createdDate:
+          type: string
+          format: date-time
+          description: UTC timestamp when entity was created
+        modifiedDate:
+          type: string
+          format: date-time
+          description: UTC timestamp when entity was last modified
+        modUser:
+          type: string
+          description: User ID who created or updated the entity
+          minLength: 1
+          maxLength: 50
+        source:
+          type: integer
+          description: Source system of the operation (Web, Mobile, API, Thirdparty, Manual)
+      required:
+        - isActive
+        - createdDate
+        - modifiedDate
+        - modUser
+        - source
+
+    # Hiring Opportunity Entity
+    HiringOpportunity:
+      allOf:
+        - $ref: '#/components/schemas/BaseEntity'
+        - type: object
+          description: Hiring Opportunity entity
+          properties:
+            hiringOpportunityID:
+              type: string
+              format: uuid
+              description: System generated UniqueID for Hiring Opportunity
+            title:
+              type: string
+              minLength: 5
+              maxLength: 50
+              description: Title for opportunity
+            opportunityCategoryID:
+              type: string
+              format: uuid
+              description: ID for Opportunity Category
+            practiceID:
+              type: string
+              format: uuid
+              description: Practice this Opportunity belongs to
+            jobDescription:
+              type: string
+              description: Detailed job description
+            additionalNotes:
+              type: string
+              description: Specific notes about the Hiring Opportunity
+              nullable: true
+            plannedCandidatesCount:
+              type: integer
+              minimum: 0
+              maximum: 50
+              description: Number of candidates required
+            statusID:
+              type: integer
+              description: Status ID (Open, InProgress, Closed)
+          required:
+            - hiringOpportunityID
+            - title
+            - opportunityCategoryID
+            - practiceID
+            - jobDescription
+            - plannedCandidatesCount
+            - statusID
+
+    # Candidate Profile Entity
+    CandidateProfile:
+      allOf:
+        - $ref: '#/components/schemas/BaseEntity'
+        - type: object
+          description: Candidate Profile entity
+          properties:
+            candidateProfileID:
+              type: string
+              format: uuid
+              description: System generated UniqueID for Candidate's Profile
+            hiringOpportunityID:
+              type: string
+              format: uuid
+              description: Linked Hiring Opportunity
+            firstName:
+              type: string
+              minLength: 1
+              maxLength: 50
+              description: Candidate's First Name
+            lastName:
+              type: string
+              minLength: 1
+              maxLength: 50
+              description: Candidate's Last Name
+            emailID:
+              type: string
+              maxLength: 250
+              format: email
+              description: Candidate's Email ID
+            designationAppliedFor:
+              type: string
+              format: uuid
+              description: Designation applied for
+            designationPresentedFor:
+              type: string
+              format: uuid
+              description: Designation presented for
+            yearsOfExperience:
+              type: number
+              description: Candidate's years of experience
+            candidateSource:
+              type: string
+              description: Source of candidate (Job Portal, Employee Reference, Walk-in, etc.)
+            resumeDocument:
+              type: string
+              description: Resume document (file reference or base64)
+            mappedTATeamMember:
+              type: string
+              format: uuid
+              description: Mapped TA Team Member
+          required:
+            - candidateProfileID
+            - hiringOpportunityID
+            - firstName
+            - lastName
+            - emailID
+            - designationAppliedFor
+            - designationPresentedFor
+            - yearsOfExperience
+            - candidateSource
+            - resumeDocument
+            - mappedTATeamMember
+
+    # Interview Schedule Entity
+    InterviewSchedule:
+      allOf:
+        - $ref: '#/components/schemas/BaseEntity'
+        - type: object
+          description: Interview Schedule entity
+          properties:
+            interviewScheduleID:
+              type: string
+              format: uuid
+              description: System generated UniqueID for Scheduled Interview
+            title:
+              type: string
+              description: Title of the interview (calendar invite)
+            notes:
+              type: string
+              description: Notes attached to the profile
+              nullable: true
+            technicalPanelMemberID:
+              type: string
+              format: uuid
+              description: Technical Panel Member assigned
+            candidateProfileID:
+              type: string
+              format: uuid
+              description: Candidate Profile
+            hiringOpportunityID:
+              type: string
+              format: uuid
+              description: Candidate's Hiring Opportunity
+            interviewTypeID:
+              type: string
+              format: uuid
+              description: Interview Type
+            availabilityID:
+              type: string
+              format: uuid
+              description: Interview Availability ID
+            scheduledDate:
+              type: string
+              format: date
+              description: Interview Scheduled Date
+            scheduledTimeslotFrom:
+              type: string
+              format: time
+              description: Interview start time
+            scheduledTimeslotTo:
+              type: string
+              format: time
+              description: Interview end time
+            statusID:
+              type: integer
+              description: Status ID (Completed, Cancelled)
+          required:
+            - interviewScheduleID
+            - title
+            - notes
+            - technicalPanelMemberID
+            - candidateProfileID
+            - hiringOpportunityID
+            - interviewTypeID
+            - availabilityID
+            - scheduledDate
+            - scheduledTimeslotFrom
+            - scheduledTimeslotTo
+            - statusID
+
+    # Interview Reschedule Request Entity
+    InterviewRescheduleRequest:
+      allOf:
+        - $ref: '#/components/schemas/BaseEntity'
+        - type: object
+          description: Interview Reschedule Request entity
+          properties:
+            interviewRescheduleRequestID:
+              type: string
+              format: uuid
+              description: Unique ID for Rescheduled Interview
+            interviewScheduleID:
+              type: string
+              format: uuid
+              description: Original Interview ScheduleID
+            previousInterviewScheduleID:
+              type: string
+              format: uuid
+              description: Previous Interview ScheduleID
+            newInterviewScheduleID:
+              type: string
+              format: uuid
+              description: Revised Interview ScheduleID
+            reason:
+              type: string
+              description: Reason for rescheduling
+            requestStatus:
+              type: integer
+              description: Request status (Approve, Rejected)
+          required:
+            - interviewRescheduleRequestID
+            - interviewScheduleID
+            - previousInterviewScheduleID
+            - newInterviewScheduleID
+            - reason
+            - requestStatus
+
+    # Interview Schedule Change History Entity
+    InterviewScheduleChangeHistory:
+      allOf:
+        - $ref: '#/components/schemas/BaseEntity'
+        - type: object
+          description: Interview Schedule Change History entity
+          properties:
+            rescheduleHistoryID:
+              type: string
+              format: uuid
+              description: Unique ID for Interview Rescheduling history
+            interviewScheduleID:
+              type: string
+              format: uuid
+              description: Original Interview ScheduleID
+            previousInterviewScheduleID:
+              type: string
+              format: uuid
+              description: Previous Interview ScheduleID
+            newInterviewScheduleID:
+              type: string
+              format: uuid
+              description: Revised Interview ScheduleID
+            interviewRescheduleRequestID:
+              type: string
+              format: uuid
+              description: Interview Reschedule Request ID
+            interviewScheduleType:
+              type: integer
+              description: Interview Schedule Type (New, Reschedule)
+            reason:
+              type: string
+              description: Reason for change
+            requestStatus:
+              type: integer
+              description: Request status (Approve, Rejected)
+          required:
+            - rescheduleHistoryID
+            - interviewScheduleID
+            - previousInterviewScheduleID
+            - newInterviewScheduleID
+            - interviewRescheduleRequestID
+            - interviewScheduleType
+            - reason
+            - requestStatus
+
+    # Feedback Entity
+    Feedback:
+      allOf:
+        - $ref: '#/components/schemas/BaseEntity'
+        - type: object
+          description: Feedback entity
+          properties:
+            feedbackID:
+              type: string
+              format: uuid
+              description: Unique ID for Feedback
+            candidateProfileID:
+              type: string
+              format: uuid
+              description: Linked Candidate Profile
+            interviewScheduleID:
+              type: string
+              format: uuid
+              description: Linked Interview Schedule
+            reviewerID:
+              type: string
+              format: uuid
+              description: Reviewer (Panel Member) ID
+            feedbackText:
+              type: string
+              description: Feedback comments
+            rating:
+              type: integer
+              minimum: 1
+              maximum: 5
+              description: Feedback rating (1-5)
+            statusID:
+              type: integer
+              description: Status ID (e.g., Submitted, Reviewed)
+          required:
+            - feedbackID
+            - candidateProfileID
+            - interviewScheduleID
+            - reviewerID
+            - feedbackText
+            - rating
+            - statusID

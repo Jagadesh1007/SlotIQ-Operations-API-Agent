@@ -1,0 +1,46 @@
+# .gitignore for SlotIQ Operations Solution
+# Ignore build output
+bin/
+obj/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio Code
+.vscode/
+
+# Logs
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Test results
+TestResults/
+
+# Auto-generated files
+*.generated.cs
+
+# SQL Server localdb
+*.mdf
+*.ldf
+
+# Rider
+.idea/
+*.sln.iml
+
+# NuGet
+*.nupkg
+.nuget/
+
+# Others
+_ReSharper*/
+*.resharper
+*.DotSettings.user
+
+# Ignore secrets
+secrets.json
